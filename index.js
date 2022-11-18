@@ -20,7 +20,7 @@ const upload = multer({ storage: storage }) // ใส่ Config ลงไป
 var publicDir = require('path').join(__dirname, './uploads')
 app.use(express.static(publicDir))
 
-app.all('/', upload.single('file'), async (req, res) => {
+app.post('/', upload.single('file'), async (req, res) => {
     let data = new FormData();
     data.append('file', fs.createReadStream(req.file.path));
 
@@ -44,5 +44,34 @@ app.all('/', upload.single('file'), async (req, res) => {
             res.status(400).send(error.message)
         });
 
+})
+
+
+app.delete('/', (req, res) => {
+    console.log(req.query.name);
+    res.status(200).send('Delete')
+    let config = {
+        method: 'delete',
+        url: 'https://api.cloudflare.com/client/v4/accounts/39aa4ea3c7a7d766adc4428933324787/images/v1/' + req.query.name,
+        headers: {
+            'Authorization': 'Bearer HQZYfq40lbkXw2hB8Z4u_wR14ZpPl2x_uscraOf0',
+            'Cookie': '__cflb=0H28vgHxwvgAQtjUGU56Rb8iNWZVUvXhuyj7m55XcT7; __cfruid=4c35142cb99efcfd2d3fdce931b159e50159777a-1668795990'
+        }
+    };
+
+    axios(config)
+        .then((response) => {
+            console.log(JSON.stringify(response.data));
+            res.status(200).send(response.data)
+        })
+        .catch((error) => {
+            console.log(error);
+            res.status(400).send(error.message)
+        });
+
+})
+
+app.get('/', (req, res) => {
+    res.send('Hello World!')
 })
 app.listen(process.env.PORT || 3000)
