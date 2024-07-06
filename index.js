@@ -35,16 +35,25 @@ app.post('/', upload.single('file'), async (req, res) => {
     };
 
     axios(config)
-        .then((response) => {
+        .then(async (response) => {
             console.log(JSON.stringify(response.data));
+
+            // Save to MongoDB using Prisma
+            await prisma.imageList.create({
+                data: {
+                    projectName: "Example Project",
+                    modalName: "Example Modal",
+                    imageUrl: response.data.result.variants[0],
+                }
+            });
+
             res.status(200).send(response.data)
         })
         .catch((error) => {
             console.log(error);
             res.status(400).send(error.message)
         });
-
-})
+});
 
 
 app.delete('/', (req, res) => {
@@ -71,7 +80,11 @@ app.delete('/', (req, res) => {
 
 })
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
-app.listen(process.env.PORT || 3000)
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server is running on port ${process.env.PORT || 3000}`);
+});
+
+process.on('SIGINT', async () => {
+    await prisma.$disconnect();
+    process.exit();
+});
